@@ -5,6 +5,7 @@ from utils import pendulum_bars
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
+import torch
 
 SIP = SingleInvertedPendulum()
 DIP = DoubleIInvertedPendulum()
@@ -69,21 +70,41 @@ fig.tight_layout()
 SIP.controller.reset_history()
 
 x0 = SIP.controller.x0
+x0_DIP = DIP.controller.x0
+#simulator.x0['theta'] = 0.99*np.pi
 
-n_steps = 300
-for k in range(n_steps):
+# Let's make a training dataset for the neural network.
+# The neural network will predict optimal control input u* given the current state x and the control input u0 from the wrong MPC.
+# the target u* is the control input from the correct MPC(DIP).
+train_data_x = []
+train_data_y = []
+
+n_steps = 1000
+for k in range(n_steps+1):
 
     u0 = SIP.controller.make_step(x0)
-    
-    # Add Neural Network to compensate input from wrong model
+    u_target = DIP.controller.make_step(x0_DIP)
+    # Data generation
+    if k != 0:
+        input_data = np.array([x0[0], x0[1], x0[2], x0[3], u0[0]])
+
+        
+        train_input = torch.tensor(input_data)
+        train_output = torch.tensor(u_target)
+        
+        train_data_x.append(train_input)
+        train_data_y.append(train_output)
+        
     y_next = DIP.simulator.make_step(u0)
-    
-    x0 = DIP.estimator.make_step(y_next)
+    x0_DIP = DIP.estimator.make_step(y_next)
     # Rearange states to match SIP
-    x0 = np.array([x0[0], x0[1], x0[3], x0[4]])
-
-
-
+    x0 = np.array([x0_DIP[0], x0_DIP[1], x0_DIP[3], x0_DIP[4]])
+    # break
+# Let's save the training data
+train_data_x = torch.stack(train_data_x)
+train_data_y = torch.stack(train_data_y)
+torch.save(train_data_x, 'train_data_x.pt')
+torch.save(train_data_y, 'train_data_y.pt')
 print("DONE!!!")
 from matplotlib.animation import FuncAnimation, FFMpegWriter
 
