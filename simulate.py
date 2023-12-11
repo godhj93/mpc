@@ -160,12 +160,13 @@ for epi in range(10000):
             memory.put((s.reshape(-1,5), optimal_u.detach().numpy().reshape(1,1), r, s_prime.reshape(-1,5), False))
             
             # Logging by tensorboard
-            writer.add_scalar("reward", r, k)
-            writer.add_scalar("theta(deg)", np.rad2deg(x0[1]), k)
-            writer.add_scalar("input force", u0[0], k)
-            if memory.size() > 100:
+            writer.add_scalar("reward", r, epi*n_steps+k)
+            writer.add_scalar("theta(deg)", np.rad2deg(x0[1]), epi*n_steps+k)
+            writer.add_scalar("input force", u0[0], epi*n_steps+k)
+            writer.add_scalar("log_prob", log_prob, epi*n_steps+k)
+            if memory.size() > 1000:
                 for i in range(20):
-                    mini_batch = memory.sample(1)#batch_size)
+                    mini_batch = memory.sample(batch_size)
                     # print(f"mini batch shape: {len(mini_batch)}")
                     # print(f"{memory.buffer}")
                     td_target = calc_target(pi, q1_target, q2_target, mini_batch)
