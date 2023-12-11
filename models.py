@@ -125,8 +125,8 @@ class SingleInvertedPendulum:
         params_simulator = {
             # Note: cvode doesn't support DAE systems.
             'integration_tool': 'idas',
-            'abstol': 1e-8,
-            'reltol': 1e-8,
+            'abstol': 1e-5,
+            'reltol': 1e-5,
             't_step': 0.04
         }
 
@@ -272,8 +272,8 @@ class DoubleIInvertedPendulum:
         params_simulator = {
             # Note: cvode doesn't support DAE systems.
             'integration_tool': 'idas',
-            'abstol': 1e-8,
-            'reltol': 1e-8,
+            'abstol': 1e-5,
+            'reltol': 1e-5,
             't_step': 0.04
         }
 
